@@ -97,7 +97,6 @@ void setup()
 	mLog.endFuncLog("setup");
 
 	
-
 	int numSecs = 3;
 	display.setTextSize(2);
 	if (verbose[3])
@@ -217,6 +216,10 @@ void loop()
 				analyzer.printReadingInfo(currentLook, display);
 				display.refresh();
 			}
+			display.section = analyzer.analyzerSection;
+			display.clear();
+			display.section = analyzer.sensorSection; 
+			display.clear();
 			break;
 
 		default:

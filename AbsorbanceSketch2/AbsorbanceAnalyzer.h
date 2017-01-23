@@ -25,8 +25,7 @@ class AbsorbanceAnalyzer {
 	SensorController sensor = SensorController();
 	SchedulerCNS measurementSchedule;
 	Logger log;
-	screenSection sensorSection = Q3,
-		analyzerSection = Q4;
+
 
 	int numRepeats,
 		samplesPerReading;
@@ -45,6 +44,10 @@ class AbsorbanceAnalyzer {
 	bool haveRecordedBlank = false;
 
 public:
+
+	screenSection sensorSection = Q3,
+		analyzerSection = Q4;
+
 	//AbsorbanceAnalyzer();
 	AbsorbanceAnalyzer(
 		LedController led,
