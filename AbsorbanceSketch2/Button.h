@@ -69,7 +69,7 @@ class Button {
 	// index IDs for chosing which interval to check, 
 	// the time intervals are defined as follows
 	enum intervalID {
-		// 0:  how often to refresh the button state
+		// how often to refresh the button state
 		REFRESH_TIMER, 
 		
 		// 1: second press following a click will not be regarded as a
@@ -89,7 +89,6 @@ class Button {
 	SchedulerCNS buttonScheduler;
 	Logger log;
 	
-	bool perfectClick = false;
 	int checkIntervals[4] = { 0,0,0,0 };
 
 public:
