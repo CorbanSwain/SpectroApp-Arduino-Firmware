@@ -17,7 +17,7 @@
 
 enum screenSection { Q1, Q2, Q3, Q4, FULL };
 const int NUM_SCREEN_SECTIONS = 5;
-const String sectionNames[NUM_SCREEN_SECTIONS] =
+const String secNames[NUM_SCREEN_SECTIONS] =
 {
 	"Quad 1",
 	"Quad 2",
@@ -38,7 +38,7 @@ class DisplayHandler {
 
 	int secWidth[NUM_SCREEN_SECTIONS] = { 32, 32, 32, 32, 32 };
 	int secHeight[NUM_SCREEN_SECTIONS] = { 32, 32, 32, 32, 128 } ;
-	int QuadOriginY[NUM_SCREEN_SECTIONS] = { 0 };
+	int secY_Origin[NUM_SCREEN_SECTIONS] = { 0 };
 
 	int cursorPosition[NUM_SCREEN_SECTIONS][2] = { { 0 } };
 	int remainingChars[NUM_SCREEN_SECTIONS] = { 0 };

@@ -68,14 +68,14 @@ void DisplayHandler::updateQuadrantDimensions()
 	int multiplier = 0;
 	for (int i = Q1; i <= Q4; ++i)
 	{
-		QuadOriginY[i] = multiplier * qHeight;
+		secY_Origin[i] = multiplier * qHeight;
 		secHeight[i] = qHeight;
 		secWidth[i] = width;
 		++multiplier;
 	}
 	secWidth[FULL] = width;
 	secHeight[FULL] = height;
-	QuadOriginY[FULL] = 0;
+	secY_Origin[FULL] = 0;
 }
 
 void DisplayHandler::setTextSize(int size)
@@ -85,9 +85,9 @@ void DisplayHandler::setTextSize(int size)
 
 void DisplayHandler::resetCursor()
 {
-	log.tp("Resetting cursor for: "); log.pl(sectionNames[section]);
+	log.tp("Resetting cursor for: "); log.pl(secNames[section]);
 	cursorPosition[section][0] = 0;
-	cursorPosition[section][1] = QuadOriginY[section];
+	cursorPosition[section][1] = secY_Origin[section];
 }
 
 void DisplayHandler::resetAllCursors()
@@ -105,11 +105,11 @@ void DisplayHandler::resetAllCursors()
 
 void DisplayHandler::clear()
 {
-	log.tp("Clearing: "); log.pl(sectionNames[section]);
+	log.tp("Clearing: "); log.pl(secNames[section]);
 	if (section == FULL) Oled.clearDisplay();
 	else
 	{
-		Oled.fillRect(0, QuadOriginY[section],
+		Oled.fillRect(0, secY_Origin[section],
 			secWidth[section], secHeight[section], BLACK);
 	}
 	resetCursor();
@@ -130,7 +130,7 @@ void DisplayHandler::printBarChart(int reading, int blankValue,
 		wrap = true;
 		print(percentReading, section); print(" %");
 
-		int secBottom = QuadOriginY[section] + secHeight[section] - 1;
+		int secBottom = secY_Origin[section] + secHeight[section] - 1;
 		
 		int tickSpacing = secWidth[section] / 6;
 		int bigTickSpacing = tickSpacing * 3;
@@ -161,8 +161,8 @@ void DisplayHandler::invert(int lineNum, int percentOfLine, int numLines)
 	log.tp("Inverting Display! ... ");
 	int lineHeight = 8 * textSize[section];
 	int x0 = 0;
-	int y0 = QuadOriginY[section] + lineHeight*lineNum;
-	int bottomOfSection = QuadOriginY[section] + secHeight[section] - 1;
+	int y0 = secY_Origin[section] + lineHeight*lineNum;
+	int bottomOfSection = secY_Origin[section] + secHeight[section] - 1;
 	if (y0 > bottomOfSection) return;
 	int width = percentOfLine * secWidth[section] / 100;
 	int height = lineHeight;
@@ -187,7 +187,7 @@ void DisplayHandler::invertCurrentLine(int percent)
 	int cursorX = cursorPosition[section][0];
 	int cursorY = cursorPosition[section][1];
 	int lineHeight = 8 * textSize[section];
-	int currentLine = (cursorY - QuadOriginY[section]) / lineHeight;
+	int currentLine = (cursorY - secY_Origin[section]) / lineHeight;
 	if (cursorX == 0 && currentLine != 0) currentLine -= 1;
 	invert(currentLine, percent);
 }
@@ -270,10 +270,10 @@ int DisplayHandler::getRemainingChars()
 {
 	log.beginFuncLog("getRemainingChars");
 
-	log.tp("Getting remain chars for: "); log.pl(sectionNames[section]);
+	log.tp("Getting remain chars for: "); log.pl(secNames[section]);
 	int16_t cursorX = cursorPosition[section][0];
 	int16_t cursorY = cursorPosition[section][1];
-	int bottomOfSection = QuadOriginY[section] + secHeight[section] - 1;
+	int bottomOfSection = secY_Origin[section] + secHeight[section] - 1;
 	int lineHeight = 8 * textSize[section];
 	int charWidth = 6 * textSize[section];
 	int remainingLines = (bottomOfSection - cursorY + 1) / lineHeight;
