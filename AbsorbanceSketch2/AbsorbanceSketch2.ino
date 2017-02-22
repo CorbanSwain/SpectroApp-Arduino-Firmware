@@ -187,8 +187,10 @@ void loop()
 			break;
 
 		case 3: // LOOK
-			if (justTookReading)
+			if (justTookReading) {
 				analyzer.recordLastReading();
+				justTookReading = false;
+			}
 			display.section = menu.infoSec;
 			display.clear();
 			display.print("\nVewngLog..");
