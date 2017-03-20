@@ -6,7 +6,8 @@
 
 String IDGenerator::getID(String addOn)
 {
-	String timeStr = String(millis());
+	uint32_t time = millis();
+	String timeStr = String(time);
 	String tenDigTimeStr = "";
 	for (int i = 0; i < (10 - timeStr.length()); ++i)
 	{
@@ -14,6 +15,7 @@ String IDGenerator::getID(String addOn)
 	}
 	tenDigTimeStr += timeStr;
 	unsigned char numDecimals = 10;
-	String random = String((double(rand()) / double(RAND_MAX)), numDecimals);
+	String random = String((double(rand() % time) / double(millis())), numDecimals);
+	random.remove(0, 2);
 	return addOn + "-" + tenDigTimeStr + "-" + random;
 }

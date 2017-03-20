@@ -29,7 +29,7 @@ void JSON::add(String key, String value)
 	if (numKeyValuePairs < MAX_NUM_KEYS)
 	{
 		keys[numKeyValuePairs] = key;
-		keys[numKeyValuePairs] = value;
+		values[numKeyValuePairs] = value;
 		numKeyValuePairs += 1;
 	}
 }

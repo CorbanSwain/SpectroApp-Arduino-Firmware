@@ -1,5 +1,5 @@
 #include "IDGenerator.h"
-#include "JSONParser.h"
+#include "JSON.h"
 #include <Adafruit_BLEMIDI.h>
 #include <Adafruit_BLEGatt.h>
 #include <Adafruit_BLEEddystone.h>

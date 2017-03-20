@@ -101,6 +101,8 @@ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_
  C:\Users\Corban\AppData\Local\arduino15\packages\adafruit\hardware\samd\1.0.13\cores\arduino/RingBuffer.h \
  C:\Users\Corban\AppData\Local\arduino15\packages\adafruit\hardware\samd\1.0.13\cores\arduino/USB/USB_host.h \
  C:\Users\Corban\AppData\Local\arduino15\packages\adafruit\hardware\samd\1.0.13\cores\arduino/USB/samd21_host.h \
+ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\IDGenerator.h \
+ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\JSON.h \
  C:\Program\ Files\ (x86)\Arduino\libraries\Adafruit_BluefruitLE_nRF51/Adafruit_BLEMIDI.h \
  C:\Users\Corban\AppData\Local\arduino15\packages\adafruit\hardware\samd\1.0.13\cores\arduino/Arduino.h \
  C:\Program\ Files\ (x86)\Arduino\libraries\Adafruit_BluefruitLE_nRF51/Adafruit_BLE.h \

@@ -113,4 +113,6 @@ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_
  C:\Program\ Files\ (x86)\Arduino\libraries\Adafruit_SSD1306/Adafruit_SSD1306.h \
  C:\Users\Corban\AppData\Local\arduino15\packages\adafruit\hardware\samd\1.0.13\libraries\SPI/SPI.h \
  C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\SensorController.h \
- C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\LedController.h
+ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\LedController.h \
+ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\JSON.h \
+ C:\Users\Corban\AppData\Local\Temp\VMBuilds\AbsorbanceSketch2\adafruit_adafruit_samd_adafruit_feather_m0\Release\IDGenerator.h
