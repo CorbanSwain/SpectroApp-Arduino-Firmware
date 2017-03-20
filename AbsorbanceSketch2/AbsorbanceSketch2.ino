@@ -1,3 +1,9 @@
+#include <Adafruit_BLEMIDI.h>
+#include <Adafruit_BLEGatt.h>
+#include <Adafruit_BLEEddystone.h>
+#include <Adafruit_BLEBattery.h>
+#include <Adafruit_ATParser.h>
+#include "BluefruitConfig.h"
 #include <math.h>
 #include "MenuHandler.h"
 #include "Logger.h"
@@ -10,9 +16,17 @@
 #include "DisplayHandler.h"
 #include "SchedulerCNS.h"
 #include "Button.h"
+#include <SPI.h>
+#if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
+#include <SoftwareSerial.h>
+#endif
+#include "Adafruit_BLE.h"
+#include "Adafruit_BluefruitLE_SPI.h"
+#include "Adafruit_BluefruitLE_UART.h"
 
-
-
+#define FACTORYRESET_ENABLE         1
+#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MODE_LED_BEHAVIOUR          "MODE"
 
 const int
 LIGHT_SENSOR = 14,// Analog Pin 0
@@ -65,6 +79,7 @@ extern AbsorbanceAnalyzer analyzer = AbsorbanceAnalyzer(led, sensor,
 SchedulerCNS loopSchedule = SchedulerCNS(500);
 MenuHandler menu = MenuHandler(verbose[7]);
 Logger mLog = Logger("main", verbose[3]);
+Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 int Logger::index = 0;
 int Logger::nestLevel = 0;
 
@@ -79,11 +94,78 @@ int currentLook = 0;
 int numOfReadings = 0;
 int numOfRepeats = 3;
 
+// A small helper
+void error(const __FlashStringHelper*err) {
+	Serial.println(err);
+	while (1);
+}
+
+
+void setupBle() {
+	delay(500);
+	
+	Serial.println(F("Adafruit Bluefruit Command <-> Data Mode Example"));
+	Serial.println(F("------------------------------------------------"));
+
+	/* Initialise the module */
+	Serial.print(F("Initialising the Bluefruit LE module: "));
+	
+	if (!ble.begin(VERBOSE_MODE))
+	{
+		error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
+	}
+	Serial.println(F("OK!"));
+
+	if (FACTORYRESET_ENABLE)
+	{
+		/* Perform a factory reset to make sure everything is in a known state */
+		Serial.println(F("Performing a factory reset: "));
+		if (!ble.factoryReset()) {
+			error(F("Couldn't factory reset"));
+		}
+	}
+
+	/* Disable command echo from Bluefruit */
+	ble.echo(false);
+
+	Serial.println("Requesting Bluefruit info:");
+	/* Print Bluefruit information */
+	ble.info();
+
+	Serial.println(F("Please use Adafruit Bluefruit LE app to connect in UART mode"));
+	Serial.println(F("Then Enter characters to send to Bluefruit"));
+	Serial.println();
+
+	ble.verbose(false);  // debug info is a little annoying after this point!
+
+	/* Wait for connection */
+	while (!ble.isConnected()) {
+		delay(500);
+	}
+
+	Serial.println(F("******************************"));
+
+	// LED Activity command is only supported from 0.6.6
+	if (ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION))
+	{
+		// Change Mode LED Activity
+		Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
+		ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
+	}
+
+	// Set module to DATA mode
+	Serial.println(F("Switching to DATA mode!"));
+	ble.setMode(BLUEFRUIT_MODE_DATA);
+
+	Serial.println(F("******************************"));
+}
+
 void setup()
 {
 	Serial.begin(9600);
 	if (verbose[3]) while (!Serial) { ; }
 
+	setupBle();
 	mLog.beginFuncLog("setup");
 	loopSchedule.setup();
 	display.setup();
@@ -144,8 +226,7 @@ void loop()
 		switch (menu.getCurrentItem())
 		{
 		case 0: // READ
-			if (justTookReading)
-				analyzer.recordLastReading();
+				
 			display.section = menu.infoSec;
 			display.clear();
 			display.print("\nTakngRedng...");
@@ -154,11 +235,12 @@ void loop()
 			justTookReading = true;
 			display.section = menu.infoSec;
 			display.clear();
+			analyzer.recordLastReading();
+			justTookReading = false;
+			ble.print(analyzer.getReadingInfoString(analyzer.getNumReadings() - 1));
 			break;
 
 		case 1: // BLANK
-			if (justTookReading)
-				analyzer.recordLastReading();
 			display.section = menu.infoSec;
 			display.clear();
 			display.print("\nTakngBlank...");
@@ -167,6 +249,9 @@ void loop()
 			justTookReading = true;
 			display.section = menu.infoSec;
 			display.clear();
+			analyzer.recordLastReading();
+			justTookReading = false;
+			ble.print(analyzer.getReadingInfoString(analyzer.getNumReadings() - 1));
 			break;
 
 		case 2: // CLEAR
@@ -187,7 +272,8 @@ void loop()
 			break;
 
 		case 3: // LOOK
-			if (justTookReading) {
+			if (justTookReading) 
+			{
 				analyzer.recordLastReading();
 				justTookReading = false;
 			}
@@ -196,31 +282,44 @@ void loop()
 			display.print("\nVewngLog..");
 			display.refreshNow();
 			numOfReadings = analyzer.getNumReadings();
-			currentLook = numOfReadings - 1;
-			while (blueButton.state != HELD)
+			if (numOfReadings == 0)
 			{
-				redButton.getState();
-				blueButton.getState();
-
-				if (blueButton.state == CLICKED)
-				{
-					currentLook += 1;
-					if (currentLook >= numOfReadings)
-						currentLook = 0;
-				}
-				if (redButton.state == CLICKED)
-				{
-					currentLook -= 1;
-					if (currentLook < 0)
-						currentLook = numOfReadings - 1;
-				}
-
-				analyzer.printReadingInfo(currentLook, display);
+				display.section = analyzer.sensorSection;
+				display.print("No\nRdngsYet!");
 				display.refresh();
+				while (blueButton.state != HELD)
+				{
+					blueButton.getState();
+				}
+			} 
+			else
+			{
+				currentLook = numOfReadings - 1;
+				while (blueButton.state != HELD)
+				{
+					redButton.getState();
+					blueButton.getState();
+
+					if (blueButton.state == CLICKED)
+					{
+						currentLook += 1;
+						if (currentLook >= numOfReadings)
+							currentLook = 0;
+					}
+					if (redButton.state == CLICKED)
+					{
+						currentLook -= 1;
+						if (currentLook < 0)
+							currentLook = numOfReadings - 1;
+					}
+
+					analyzer.printReadingInfo(currentLook, display);
+					display.refresh();
+				}
 			}
 			display.section = analyzer.analyzerSection;
 			display.clear();
-			display.section = analyzer.sensorSection; 
+			display.section = analyzer.sensorSection;
 			display.clear();
 			break;
 

@@ -66,7 +66,7 @@ public:
 	void getReading(int arrayOut[][MAX_REPEATS], int startIntex, int endIndex);
 
 	int printReadingInfo(int readingIndex, DisplayHandler &display);
-
+	String getReadingInfoString(int readingIndex);
 	void printTester(DisplayHandler &display);
 
 private:

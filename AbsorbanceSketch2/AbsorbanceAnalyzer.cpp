@@ -252,6 +252,61 @@ int AbsorbanceAnalyzer::printReadingInfo(int index, DisplayHandler &display)
 	display.print("n="); display.print(numRepeats);
 }
 
+String AbsorbanceAnalyzer::getReadingInfoString(int index)
+{
+	if (index < 0) // ERROR
+	{
+		index = 0;
+	}
+	else if (index >= numReadings) // ERROR
+	{
+		index = numReadings - 1;
+		if (index >= MAX_NUM_READINGS)
+		{
+			index = MAX_NUM_READINGS - 1;
+		}
+	}
+
+	double average = 0;
+	double stdDev = 0;
+	double normReading[MAX_REPEATS] = { 0 };
+
+	for (int i = 0; i < numRepeats; ++i)
+	{
+		normReading[i] = (double)readingLog[index][i] / (double)blankValue;
+		average += normReading[i];
+	}
+
+	average = average / numRepeats;
+
+	double x = 0;
+	for (int i = 0; i < numRepeats; ++i)
+	{
+		x = normReading[i];
+		x = average - x;
+		x *= x;
+		stdDev += x;
+	}
+
+	stdDev = stdDev / (double)(numRepeats - 1);
+	stdDev = squareRoot(stdDev);
+
+	String infoString = "Reading #" + String(index + 1) + ": " + String(average, 3) + " +/- " + String(stdDev, 3);
+	if (isBlank[index])
+	{
+		infoString += " || Is a Blank ";
+	}
+	else
+	{
+		infoString += " || Not a Blank";
+	}
+	infoString += " || n=" + String(numRepeats) + "\n";
+	return infoString;
+}
+
+
+
+
 
 void AbsorbanceAnalyzer::printTester(DisplayHandler &display)
 {
