@@ -15,6 +15,8 @@
 #include "Logger.h"
 #include "SensorController.h"
 #include "LedController.h"
+#include "JSON.h"
+#include "IDGenerator.h"
 
 static const int MAX_NUM_READINGS = 200;
 static const int MAX_REPEATS = 10;
@@ -32,12 +34,14 @@ class AbsorbanceAnalyzer {
 
 	int readingLog[MAX_NUM_READINGS][MAX_REPEATS] = { { 0 } };
 	unsigned long timeStamps[MAX_NUM_READINGS] = { 0 };
+	String IDLog[MAX_NUM_READINGS] = { "" };
 	bool isBlank[MAX_NUM_READINGS] = { false };
 	int numReadings = 0;
 	int index = 0;
 
 	int lastReading[MAX_REPEATS] = { 0 };
 	unsigned long lastTimeStamp = 0;
+	String lastID = "";
 	bool isLastReadingBlank = false;
 
 	int blankValue = 2740;
@@ -67,6 +71,7 @@ public:
 
 	int printReadingInfo(int readingIndex, DisplayHandler &display);
 	String getReadingInfoString(int readingIndex);
+	JSON getReadingJSON(int readingIndex);
 	void printTester(DisplayHandler &display);
 
 private:

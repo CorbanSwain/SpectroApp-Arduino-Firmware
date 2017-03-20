@@ -1,3 +1,5 @@
+#include "IDGenerator.h"
+#include "JSONParser.h"
 #include <Adafruit_BLEMIDI.h>
 #include <Adafruit_BLEGatt.h>
 #include <Adafruit_BLEEddystone.h>
@@ -75,7 +77,7 @@ SensorController sensor = SensorController(LIGHT_SENSOR, sensorInterval, verbose
 LedController led = LedController(LED_600NM, verbose[6]);
 extern AbsorbanceAnalyzer analyzer = AbsorbanceAnalyzer(led, sensor,
 	analyzerInterval,
-	verbose[4], 3, 50);
+	verbose[4], 1, 50);
 SchedulerCNS loopSchedule = SchedulerCNS(500);
 MenuHandler menu = MenuHandler(verbose[7]);
 Logger mLog = Logger("main", verbose[3]);
@@ -237,7 +239,7 @@ void loop()
 			display.clear();
 			analyzer.recordLastReading();
 			justTookReading = false;
-			ble.print(analyzer.getReadingInfoString(analyzer.getNumReadings() - 1));
+			ble.print(analyzer.getReadingJSON(analyzer.getNumReadings() - 1).getString());
 			break;
 
 		case 1: // BLANK
@@ -251,7 +253,7 @@ void loop()
 			display.clear();
 			analyzer.recordLastReading();
 			justTookReading = false;
-			ble.print(analyzer.getReadingInfoString(analyzer.getNumReadings() - 1));
+			ble.print(analyzer.getReadingJSON(analyzer.getNumReadings() - 1).getString());
 			break;
 
 		case 2: // CLEAR
