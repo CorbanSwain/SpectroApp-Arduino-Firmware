@@ -9,9 +9,9 @@ JSON::JSON()
 	;
 }
 
-String JSON::getString()
+String JSON::getString(char tag)
 {
-	String jsonStr = "<{";
+	String jsonStr = "<" + String(tag) + "{";
 	for(int i = 0; i < numKeyValuePairs; ++i)
 	{
 		jsonStr += quotify(keys[i]) + ":" + quotify(values[i]);

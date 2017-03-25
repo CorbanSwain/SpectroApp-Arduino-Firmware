@@ -20,7 +20,7 @@ class JSON {
 	static String quotify(String string);
 public:
 	JSON();
-	String getString();
+	String getString(char tag);
 	void add(String key, String value);
 	void add(String key, int value);
 	
