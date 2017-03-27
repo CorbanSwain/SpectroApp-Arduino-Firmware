@@ -208,7 +208,7 @@ void loop()
 
 		switch (menu.getCurrentItem())
 		{
-		case 0: // READ
+		case 0: // READ it
 				
 			display.section = menu.infoSec;
 			display.clear();
