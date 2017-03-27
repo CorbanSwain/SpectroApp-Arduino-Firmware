@@ -23,6 +23,7 @@ public:
 	String getString(char tag);
 	void add(String key, String value);
 	void add(String key, int value);
+	void add(String key, unsigned long value);
 	
 };
 

@@ -39,6 +39,11 @@ void JSON::add(String key, int value)
 	add(key, String(value));
 }
 
+void JSON::add(String key, unsigned long value)
+{
+	add(key, String(value));
+}
+
 String JSON::quotify(String string)
 {
 	return "\"" + string + "\"";

@@ -56,7 +56,7 @@ int AbsorbanceAnalyzer::takeReading(DisplayHandler &display, bool isBaseline)
 	String readingInfo, readingInfo2;
 	int sum = 0;
 	lastTimeStamp = millis();
-	lastID = IDGenerator::getID("DP");
+	lastID = IDGenerator::getID("DPID");
 	isLastReadingBlank = isBaseline;
 	log.tp("(int)lastTimeStamp: "); log.pl((int)lastTimeStamp);
 	for (int i = 0; i < numRepeats; ++i)
@@ -322,7 +322,8 @@ JSON AbsorbanceAnalyzer::getReadingJSON(int index)
 	}
 	
 	JSON json = JSON();
-	json.add("Index", index);
+	json.add("Index", numReadings - 1);
+	json.add("Timestamp", timeStamps[index]);
 
 	int readingValue = 0;
 	for (int i = 0; i < numRepeats; ++i)
@@ -331,16 +332,11 @@ JSON AbsorbanceAnalyzer::getReadingJSON(int index)
 	}
 	readingValue = readingValue / numRepeats;
 	json.add("Value", readingValue);
-
-	json.add("Identifier", IDGenerator::getID("DP"));
+	json.add("Identifier", IDLog[index]);
 	json.add("Tag", "control");
 	json.add("TagNumber", 2);
 	return json;
 }
-
-
-
-
 
 void AbsorbanceAnalyzer::printTester(DisplayHandler &display)
 {
