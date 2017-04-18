@@ -16,26 +16,26 @@
 static const int MAX_NUM_MENU_ITEMS = 4;
 const int MENU_FLASH_INTERVAL = 500;
 
+enum readingType {
+	BLANK,
+	CONTROL,
+	STANDARD,
+	UNKNOWN,
+	KNOWN,
+	WILD_TYPE,
+	MUTANT,
+	CUSTOM,
+};
+
 class MenuHandler
 {
-	int numItems = 4;
 
-	String menuItemShortString[MAX_NUM_MENU_ITEMS] =
-	{
-		"READ",
-		"BLANK",
-		"CLEAR",
-		"LOOK"
-	};
+	int numReadingTypes = 8;
+	int head = 0;
 
-	String menuItemLongString[MAX_NUM_MENU_ITEMS] =
-	{
-		"\nTake\nRedng",
-		"\nTake\nBlankRedng",
-		"\nClearLast\nRedng",
-		"\nLook-up\nRedng"
-	};
+	String menuItemShortString[MAX_NUM_MENU_ITEMS] = { "" };
 
+	String menuItemLongString[MAX_NUM_MENU_ITEMS] = { "" };
 
 	SchedulerCNS menuFlasher = SchedulerCNS(MENU_FLASH_INTERVAL);
 	Logger log;
@@ -51,16 +51,17 @@ public:
 	bool displayInfo = true;
 
 	MenuHandler(bool verbose = true);
-	MenuHandler(int numItems, String shortString[],
-		String longString[], bool verbose = true);
-	
+	void setHead(int headIndex);
 	void printMenu(DisplayHandler &display);
 	void highlightItem(int itemNum, DisplayHandler &display);
 	void highlightNext(DisplayHandler &display);
 	void highlightPrevious(DisplayHandler &display);
 	void flashItem(DisplayHandler &display);
+	String getReadingTypeShortString(readingType type);
+	String getReadingTypeLongString(readingType type);
 	
-	int getCurrentItem();
+	readingType getCurrentItem();
+	int getCurrentHighlightIndex();
 };
 
 #endif

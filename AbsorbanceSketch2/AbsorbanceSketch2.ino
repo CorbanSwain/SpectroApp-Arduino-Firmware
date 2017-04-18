@@ -38,7 +38,7 @@ BUTTON_B = 6, // OLED Featherwing Button B
 BUTTON_C = 5, // OLED Featherwing Button C
 
 buttonCheckInterval = 8,
-doubleClickInterval = 160, // must be ~5X longer then the `buttonCheckInterval`
+doubleClickInterval = 160, // must be at a minumum ~5X longer then the `buttonCheckInterval`
 holdInterval = 3000, // bust
 longHoldInterval = 8000, // must be longer than the `holdInterval`
 
@@ -79,6 +79,7 @@ extern AbsorbanceAnalyzer analyzer = AbsorbanceAnalyzer(led, sensor,
 	analyzerInterval,
 	verbose[4], 1, 50);
 SchedulerCNS loopSchedule = SchedulerCNS(500);
+SchedulerCNS timeUpdateSchedule = SchedulerCNS(5000);
 MenuHandler menu = MenuHandler(verbose[7]);
 Logger mLog = Logger("main", verbose[3]);
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
@@ -91,6 +92,8 @@ int value = 50;
 int output = 0;
 const int NUM_READINGS = 50;
 bool justTookReading = false;
+
+buttonState blueState = IDLE;
 
 int currentLook = 0;
 int numOfReadings = 0;
@@ -150,6 +153,7 @@ void setup()
 
 	setupBle();
 	mLog.beginFuncLog("setup");
+	timeUpdateSchedule.setup();
 	loopSchedule.setup();
 	display.setup();
 	redButton.setup();
@@ -189,6 +193,13 @@ void loop()
 	redButton.getState();
 	blueButton.getState();
 
+	if (timeUpdateSchedule.timeUp()) {
+		JSON timeJSON = JSON();
+		timeJSON.add("Millis", (unsigned long)millis());
+		ble.print(timeJSON.getString('T'));
+	}
+
+	// Menu Navigation
 	switch (redButton.state) {
 	case CLICKED:
 		menu.highlightNext(display);
@@ -196,119 +207,89 @@ void loop()
 	case DOUBLE_CLICKED:
 		menu.highlightPrevious(display);
 		break;
+	case HELD:
+		if (justTookReading)
+		{
+			analyzer.recordLastReading();
+			justTookReading = false;
+		}
+		display.section = menu.infoSec;
+		display.clear();
+		display.print("\nVewngLog..");
+		display.refreshNow();
+		numOfReadings = analyzer.getNumReadings();
+		if (numOfReadings == 0)
+		{
+			display.section = analyzer.sensorSection;
+			display.print("No\nRdngsYet!");
+			display.refresh();
+			while (blueButton.state != HELD)
+			{
+				blueButton.getState();
+			}
+		}
+		else
+		{
+			currentLook = numOfReadings - 1;
+			while (blueButton.state != HELD)
+			{
+				redButton.getState();
+				blueButton.getState();
+
+				if (blueButton.state == CLICKED)
+				{
+					currentLook += 1;
+					if (currentLook >= numOfReadings)
+						currentLook = 0;
+				}
+				if (redButton.state == CLICKED)
+				{
+					currentLook -= 1;
+					if (currentLook < 0)
+						currentLook = numOfReadings - 1;
+				}
+
+				analyzer.printReadingInfo(currentLook, display);
+				display.refresh();
+			}
+		}
+		display.section = analyzer.analyzerSection;
+		display.clear();
+		display.section = analyzer.sensorSection;
+		display.clear();
+		break;
 	default:
 		menu.flashItem(display);
 		break;
 	}
 
-	
-	if (blueButton.state == CLICKED)
+
+	blueState = blueButton.state;
+	if (blueState == CLICKED || blueState == HELD)
 	{
-		menu.highlightItem(menu.getCurrentItem(), display);
-
-		switch (menu.getCurrentItem())
+		readingType type = menu.getCurrentItem();
+		menu.highlightItem(menu.getCurrentHighlightIndex(), display);
+		display.section = menu.infoSec;
+		display.clear();
+		String infoStr = menu.getReadingTypeShortString(type);
+		infoStr.toLowerCase();
+		infoStr = "\nTakng" + infoStr + "...";
+		display.print(infoStr);
+		display.refreshNow();
+		if (blueState == CLICKED)
 		{
-		case 0: // READ it
-				
-			display.section = menu.infoSec;
-			display.clear();
-			display.print("\nTakngRedng...");
-			display.refreshNow();
-			analyzer.takeReading(display);
-			justTookReading = true;
-			display.section = menu.infoSec;
-			display.clear();
-			analyzer.recordLastReading();
-			justTookReading = false;
-			ble.print(analyzer.getReadingJSON(analyzer.getNumReadings() - 1).getString('P'));
-			break;
-
-		case 1: // BLANK
-			display.section = menu.infoSec;
-			display.clear();
-			display.print("\nTakngBlank...");
-			display.refreshNow();
-			analyzer.takeBlank(display);
-			justTookReading = true;
-			display.section = menu.infoSec;
-			display.clear();
-			analyzer.recordLastReading();
-			justTookReading = false;
-			ble.print(analyzer.getReadingJSON(analyzer.getNumReadings() - 1).getString('P'));
-			break;
-
-		case 2: // CLEAR
-			display.section = menu.infoSec;
-			display.clear();
-			if (justTookReading)
-			{
-				justTookReading = false;
-				
-				display.print("\nDone.");
-			}
-			else
-			{
-				display.print("\nAlrdyClred");
-			}
-			display.refreshNow();
-			delay(1000);
-			break;
-
-		case 3: // LOOK
-			if (justTookReading) 
-			{
-				analyzer.recordLastReading();
-				justTookReading = false;
-			}
-			display.section = menu.infoSec;
-			display.clear();
-			display.print("\nVewngLog..");
-			display.refreshNow();
-			numOfReadings = analyzer.getNumReadings();
-			if (numOfReadings == 0)
-			{
-				display.section = analyzer.sensorSection;
-				display.print("No\nRdngsYet!");
-				display.refresh();
-				while (blueButton.state != HELD)
-				{
-					blueButton.getState();
-				}
-			} 
-			else
-			{
-				currentLook = numOfReadings - 1;
-				while (blueButton.state != HELD)
-				{
-					redButton.getState();
-					blueButton.getState();
-
-					if (blueButton.state == CLICKED)
-					{
-						currentLook += 1;
-						if (currentLook >= numOfReadings)
-							currentLook = 0;
-					}
-					if (redButton.state == CLICKED)
-					{
-						currentLook -= 1;
-						if (currentLook < 0)
-							currentLook = numOfReadings - 1;
-					}
-
-					analyzer.printReadingInfo(currentLook, display);
-					display.refresh();
-				}
-			}
-			display.section = analyzer.analyzerSection;
-			display.clear();
-			display.section = analyzer.sensorSection;
-			display.clear();
-			break;
-
-		default:
-			break;
+			analyzer.takeReading(display, type, false); // not a repeat
 		}
+		else 
+		{
+			analyzer.takeReading(display, type, true); // a repeat
+		}
+		justTookReading = true;
+		display.section = menu.infoSec;
+		display.clear();
+		analyzer.recordLastReading();
+		justTookReading = false;
+		ble.print(analyzer.getReadingJSON(analyzer.getNumReadings() - 1).getString('P'));
 	}
 	display.refresh();
 }
@@ -543,5 +524,5 @@ void takeReadingLoop2()
 
 	delay(100);
 
-	analyzer.takeReading(display);
+	analyzer.takeReading(display, CUSTOM);
 }

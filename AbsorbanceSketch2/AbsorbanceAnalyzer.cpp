@@ -36,14 +36,7 @@ void AbsorbanceAnalyzer::setup()
 	measurementSchedule.setup();
 }
 
-int AbsorbanceAnalyzer::takeBlank(DisplayHandler &display) {
-	log.tpl("Beginning baseline reading...");
-	blankValue = takeReading(display, true);
-	log.tp("Baseline reading: "); log.pl(blankValue);
-	return blankValue;
-}
-
-int AbsorbanceAnalyzer::takeReading(DisplayHandler &display, bool isBaseline)
+int AbsorbanceAnalyzer::takeReading(DisplayHandler &display, readingType type, bool isRepeat)
 {
 	screenSection lastSec = display.section;
 	
@@ -57,7 +50,24 @@ int AbsorbanceAnalyzer::takeReading(DisplayHandler &display, bool isBaseline)
 	int sum = 0;
 	lastTimeStamp = millis();
 	lastID = IDGenerator::getID("DPID");
-	isLastReadingBlank = isBaseline;
+	if (type == BLANK)
+	{
+		isLastReadingBlank = true;
+	} 
+	else
+	{
+		isLastReadingBlank = false;
+	}
+	if (isRepeat)
+	{
+		;
+	}
+	else 
+	{
+		typeCounter[type] += 1;
+	}
+	lastReadingTypeIndex = typeCounter[type];
+	lastReadingType = type;
 	log.tp("(int)lastTimeStamp: "); log.pl((int)lastTimeStamp);
 	for (int i = 0; i < numRepeats; ++i)
 	{	
@@ -104,6 +114,8 @@ void AbsorbanceAnalyzer::recordLastReading()
 		readingLog[index][i] = lastReading[i];
 	}
 	timeStamps[index] = lastTimeStamp;
+	readingTypes[index] = lastReadingType;
+	readingTypeIndices[index] = lastReadingTypeIndex;
 	isBlank[index] = isLastReadingBlank;
 	IDLog[index] = lastID;
 	numReadings += 1;
@@ -333,8 +345,8 @@ JSON AbsorbanceAnalyzer::getReadingJSON(int index)
 	readingValue = readingValue / numRepeats;
 	json.add("Value", readingValue);
 	json.add("Identifier", IDLog[index]);
-	json.add("Tag", "control");
-	json.add("TagNumber", 2);
+	json.add("Tag", getReadingTypeBLEString(readingTypes[index]));
+	json.add("TagNumber", readingTypeIndices[index]);
 	return json;
 }
 
@@ -366,4 +378,20 @@ double AbsorbanceAnalyzer::squareRoot(double n)
 		y = n / x;
 	}
 	return x;
+}
+
+String AbsorbanceAnalyzer::getReadingTypeBLEString(readingType type)
+{
+	switch (type)
+	{
+	case CONTROL:	return "control";	break;
+	case KNOWN:		return "known";		break;
+	case STANDARD:	return "standard";	break;
+	case UNKNOWN:	return "unknown";	break;
+	case WILD_TYPE: return "wildType";	break;
+	case MUTANT:	return "mutant";	break;
+	case CUSTOM:	return "custom";	break;
+	case BLANK:		return "blank";		break;
+	default:		return "[no type]";	break;
+	}
 }

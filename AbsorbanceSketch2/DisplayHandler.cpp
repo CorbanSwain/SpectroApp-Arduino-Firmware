@@ -128,7 +128,7 @@ void DisplayHandler::printBarChart(int reading, int blankValue,
 		wrap = false;
 		print(label); print("\n");
 		wrap = true;
-		print(percentReading, section); print(" %");
+		print(percentReading); print(" %");
 
 		int secBottom = secY_Origin[section] + secHeight[section] - 1;
 		

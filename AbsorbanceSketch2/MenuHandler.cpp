@@ -7,18 +7,7 @@
 MenuHandler::MenuHandler(bool verbose)
 {
 	log = Logger("MenuHandler", verbose);
-}
-
-MenuHandler::MenuHandler(int numItems, String shortString[],
-	String longString[], bool verbose)
-{
-	this->numItems = numItems;
-	for (int i = 0; i < numItems; ++i)
-	{
-		menuItemShortString[i] = shortString[i];
-		menuItemLongString[i] = longString[i];
-	}
-	log = Logger("MenuHandler", verbose);
+	setHead(0);
 }
 
 void MenuHandler::printMenu(DisplayHandler &display)
@@ -30,7 +19,7 @@ void MenuHandler::printMenu(DisplayHandler &display)
 	display.wrap = false;
 	
 	display.clear();
-	for (int i = 0; i < numItems; ++i)
+	for (int i = 0; i < MAX_NUM_MENU_ITEMS; ++i)
 	{
 		display.print(menuItemShortString[i]);
 		display.print("\n");
@@ -43,9 +32,39 @@ void MenuHandler::printMenu(DisplayHandler &display)
 		invertState[i] = false;
 	}
 
-	highlightItem(0, display);
+	highlightItem(currentHighlighted, display);
 
 	log.pl("Done.");
+}
+
+void MenuHandler::setHead(int headIndex)
+{
+	if (headIndex < -1) // ERROR
+	{
+		headIndex = 0;
+		log.tpl("ERROR, itemNum too small");
+	}
+	else if (headIndex > numReadingTypes) // ERROR
+	{
+		headIndex = numReadingTypes - 1;
+		log.tpl("ERROR, itemNum too large");
+	}
+	else if (headIndex == numReadingTypes)
+	{
+		headIndex = 0;
+	}
+	else if (headIndex == -1)
+	{
+		headIndex = numReadingTypes - 1;
+	}
+	head = headIndex;
+	readingType currentType;
+	for (int i = 0; i < MAX_NUM_MENU_ITEMS; ++i)
+	{
+		currentType = (readingType)((head + i) % numReadingTypes);
+		menuItemLongString[i] = getReadingTypeLongString(currentType);
+		menuItemShortString[i] = getReadingTypeShortString(currentType);
+	}
 }
 
 void MenuHandler::highlightItem(int itemNum, DisplayHandler & display)
@@ -71,14 +90,15 @@ void MenuHandler::highlightItem(int itemNum, DisplayHandler & display)
 		display.invert(currentHighlighted);
 		invertState[currentHighlighted] = false;
 	}
-	
-	display.invert(itemNum);
-	menuFlasher.reset();
+
 	currentHighlighted = itemNum;
+	display.invert(currentHighlighted);
+	menuFlasher.reset();
 	invertState[currentHighlighted] = true;
 
 	display.section = infoSec;
 	display.clear();
+	display.print("-----");
 	display.print(menuItemLongString[currentHighlighted]);
 
 	display.section = lastSec;
@@ -89,12 +109,9 @@ void MenuHandler::highlightNext(DisplayHandler & display)
 {
 	if (currentHighlighted == MAX_NUM_MENU_ITEMS - 1)
 	{
-		if (wrapAround)
-		{
-			log.tpl("Highlighting up to top...");
-			highlightItem(0, display);
-		}
-		else return;
+		setHead(head + 1);
+		printMenu(display);
+		highlightItem(currentHighlighted, display);
 	}
 	else
 	{
@@ -107,12 +124,9 @@ void MenuHandler::highlightPrevious(DisplayHandler & display)
 {
 	if (currentHighlighted == 0)
 	{
-		if (wrapAround)
-		{
-			log.tpl("Highlighting down to bottom...");
-			highlightItem(MAX_NUM_MENU_ITEMS - 1, display);
-		}
-		else return;
+		setHead(head - 1);
+		printMenu(display);
+		highlightItem(currentHighlighted, display);
 	}
 	else
 	{
@@ -136,7 +150,83 @@ void MenuHandler::flashItem(DisplayHandler &display)
 	}
 }
 
-int MenuHandler::getCurrentItem()
+String MenuHandler::getReadingTypeShortString(readingType type)
+{
+	switch (type) 
+	{
+	case BLANK:
+		return "BLANK";
+		break;
+	case CONTROL:
+		return "CNTRL";
+		break;
+	case STANDARD:
+		return "STNRD";
+		break;
+	case UNKNOWN:
+		return "UNKWN";
+		break;
+	case KNOWN:
+		return "KNOWN";
+		break;
+	case WILD_TYPE:
+		return "W.T.";
+		break;
+	case MUTANT:
+		return "MUTNT";
+		break;
+	case CUSTOM:
+		return "CUSTM";
+		break;
+	default:
+		return "ERR!!";
+		break;
+	}
+}
+
+String MenuHandler::getReadingTypeLongString(readingType type)
+{
+	String descr;
+	switch (type)
+	{
+	case BLANK:
+		return "BlankValue";
+		break;
+	case CONTROL:
+		return "Con-\ntrol";
+		break;
+	case STANDARD:
+		return "Stan-\ndard";
+		break;
+	case UNKNOWN:
+		return "Un-\nknown";
+		break;
+	case KNOWN:
+		return "Known";
+		break;
+	case WILD_TYPE:
+		return "Wild\nType";
+		break;
+	case MUTANT:
+		return "Mut-\nant";
+		break;
+	case CUSTOM:
+		return "Cus-\ntom";
+		break;
+	default:
+		return "DoNotSelct!!!!!";
+		break;
+	}
+}
+
+
+
+readingType MenuHandler::getCurrentItem()
+{
+	return (readingType)((currentHighlighted + head) % numReadingTypes);
+}
+
+int MenuHandler::getCurrentHighlightIndex()
 {
 	return currentHighlighted;
 }

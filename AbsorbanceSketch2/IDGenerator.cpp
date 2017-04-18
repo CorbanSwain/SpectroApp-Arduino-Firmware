@@ -16,6 +16,7 @@ String IDGenerator::getID(String addOn)
 	String eightDigTime2Str = "";
 	int len = 8;
 	for (int i = 0; i < len; ++i)
+
 	{
 		if ((len - i) > time1Str.length())
 		{

@@ -17,9 +17,11 @@
 #include "LedController.h"
 #include "JSON.h"
 #include "IDGenerator.h"
+#include "MenuHandler.h"
 
 static const int MAX_NUM_READINGS = 200;
 static const int MAX_REPEATS = 10;
+static const int MAX_READING_TYPES = 25;
 
 class AbsorbanceAnalyzer {
 	
@@ -31,14 +33,18 @@ class AbsorbanceAnalyzer {
 
 	int numRepeats,
 		samplesPerReading;
-
+	int typeCounter[MAX_READING_TYPES] = { 0 };
 	int readingLog[MAX_NUM_READINGS][MAX_REPEATS] = { { 0 } };
 	unsigned long timeStamps[MAX_NUM_READINGS] = { 0 };
+	readingType readingTypes[MAX_NUM_READINGS] = { CUSTOM };
+	int readingTypeIndices[MAX_NUM_READINGS] = { 0 };
 	String IDLog[MAX_NUM_READINGS] = { "" };
 	bool isBlank[MAX_NUM_READINGS] = { false };
 	int numReadings = 0;
 	int index = 0;
 
+	int lastReadingTypeIndex = 0;
+	readingType lastReadingType = CUSTOM;
 	int lastReading[MAX_REPEATS] = { 0 };
 	unsigned long lastTimeStamp = 0;
 	String lastID = "";
@@ -59,8 +65,7 @@ public:
 		int checkInterval, bool verbose,
 		int numRepeats, int numSamplesPerReading);
 	void setup();
-	int takeBlank(DisplayHandler &display);
-	int takeReading(DisplayHandler &display, bool isBlank = false);
+	int takeReading(DisplayHandler &display, readingType type, bool isRepeat = false);
 	void recordLastReading();
 	int getBlank();
 	int getNumReadings();
@@ -76,6 +81,7 @@ public:
 
 private:
 	double squareRoot(double n);
+	String getReadingTypeBLEString(readingType type);
 };
 
 
